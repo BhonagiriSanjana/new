@@ -6,6 +6,21 @@
 > **Important repository note:** I checked the specified `deepthisagar7/library-management` repository. Its current `pom.xml` is malformed and has Java compiler values of `1`; the repository also contains `LibraryManagement.java` with a `main()` method. The GitHub connection available here has **read-only permission**, so I could inspect the repository but could not push the correction directly.
 
 ---
+#push doc image to hub
+docker tag lms-app:latest dockerhubusername/lms-app:latest
+docker login
+docker push dockerhubusername/lms-app:latest
+
+docker exec -it labinternal-1 /bin/bash
+apt update
+apt install -y git nano
+git --version
+nano --version
+
+docker pull ubuntu:latest
+docker run -dit --name labinternal-1 ubuntu:latest
+docker ps
+
 docker build -t ai-olms:latest .
 docker run -d -p 7012:8080 ai-olms:latest
 
