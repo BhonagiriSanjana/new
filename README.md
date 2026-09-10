@@ -6,6 +6,27 @@
 > **Important repository note:** I checked the specified `deepthisagar7/library-management` repository. Its current `pom.xml` is malformed and has Java compiler values of `1`; the repository also contains `LibraryManagement.java` with a `main()` method. The GitHub connection available here has **read-only permission**, so I could inspect the repository but could not push the correction directly.
 
 ---
+docker build -t ai-olms:latest .
+docker run -d -p 7012:8080 ai-olms:latest
+
+
+#Stage 1: Build using Maven + Java 17
+FROM maven:3.8.6-openjdk-17 AS build
+WORKDIR /app
+COPY . .
+RUN mvn clean package
+
+# Stage 2: Runtime using Apache Tomcat
+FROM tomcat:9.0-jdk17
+
+# Copy the generated WAR into Tomcat's webapps directory
+COPY --from=build /app/target/AI-OLMS.war /usr/local/tomcat/webapps/AI-OLMS.war
+
+# Expose port 8080
+EXPOSE 8080
+
+CMD ["catalina.sh", "run"]
+
 
 # SET-3 — Library Management System
 Repository: `https://github.com/deepthisagar7/library-management.git`
