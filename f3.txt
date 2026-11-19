@@ -1,0 +1,174 @@
+AWS EC2 PRACTICAL – OLTRS APPLICATION DEPLOYMENT Line-by-line console
+steps and commands
+
+A. AWS CONSOLE STEPS
+
+1.  Sign in to the AWS Management Console.
+2.  Open the AWS region selector and choose the region used for the lab.
+3.  Search for EC2 and open the EC2 Dashboard.
+4.  Select Instances.
+5.  Click Launch instances.
+6.  Enter an instance name, for example OLTRS-Server.
+7.  Choose an Amazon Linux AMI.
+8.  Choose an instance type suitable for the lab, for example t2.micro
+    or the available Free Tier eligible type.
+9.  Under Key pair, choose Create new key pair if one does not already
+    exist.
+10. Enter the key pair name: oltrs-key.
+11. Select PEM as the private key file format.
+12. Download the key pair file and keep it safe. Do not share it.
+13. Under Network settings, create or select a security group.
+14. Add an inbound SSH rule: TCP port 22, source My IP.
+15. Add an inbound HTTP rule: TCP port 80, source 0.0.0.0/0, if HTTP
+    access is required.
+16. Add an inbound custom TCP rule: TCP port 8080, source 0.0.0.0/0, to
+    access the application for this lab.
+17. Review the instance configuration.
+18. Click Launch instance.
+19. Open the Instances page.
+20. Wait until the instance state shows Running.
+21. Confirm that the status checks show 2/2 checks passed.
+22. Copy the instance Public IPv4 address.
+23. Keep the instance running while connecting and testing the
+    application.
+
+B. CONNECT TO THE EC2 INSTANCE FROM WINDOWS
+
+24. Open PowerShell in the folder containing oltrs-key.pem.
+25. If Windows reports that the key permissions are too open, run:
+    icacls .-key.pem /inheritance:r
+26. Grant read permission to your Windows user if needed: icacls
+    .-key.pem /grant:r “%USERNAME%:R”
+27. Connect to an Amazon Linux instance: ssh -i “oltrs-key.pem”
+    ec2-user@PUBLIC_IP
+28. Replace PUBLIC_IP with the Public IPv4 address copied from EC2.
+29. If asked whether to continue connecting, type: yes
+30. You should now see the EC2 terminal prompt.
+
+C. UPDATE THE EC2 INSTANCE
+
+31. Update installed packages: sudo dnf update -y
+
+D. INSTALL REQUIRED SOFTWARE
+
+32. Install Git: sudo dnf install git -y
+33. Install Java: sudo dnf install java-17-amazon-corretto-devel -y
+34. Check Java: java -version
+35. Install Maven: sudo dnf install maven -y
+36. Check Maven: mvn -version
+37. Check Git: git –version
+
+E. DOWNLOAD THE OLTRS PROJECT FROM GITHUB
+
+38. Clone the project repository: git clone
+    https://github.com/archanareddyse/OLTRS.git
+39. Move into the project folder: cd OLTRS
+40. List the project files: ls
+41. Check whether the project contains a pom.xml file: ls pom.xml
+
+F. BUILD THE PROJECT USING MAVEN
+
+42. Clean previous build output and package the project: mvn clean
+    package
+43. If the build succeeds, Maven creates the build output inside the
+    target folder.
+44. List the target folder: ls target
+45. Look for the generated WAR or JAR file: find target -maxdepth 1
+    -type f
+
+G. RUN OR DEPLOY THE APPLICATION
+
+46. If the project creates an executable Spring Boot JAR, run the
+    generated JAR: java -jar target/GENERATED_FILE_NAME.jar
+47. Replace GENERATED_FILE_NAME.jar with the actual JAR filename shown
+    inside target.
+48. To run it in the background: nohup java -jar
+    target/GENERATED_FILE_NAME.jar > app.log 2>&1 &
+49. Check the Java process: ps -ef | grep java
+50. View application logs: tail -f app.log
+51. If the project creates a WAR file, deploy that WAR to a configured
+    Tomcat server instead of running it with java -jar.
+52. For a Tomcat deployment, copy the WAR into Tomcat’s webapps
+    directory: sudo cp target/GENERATED_FILE_NAME.war
+    /path/to/tomcat/webapps/
+53. Start or restart Tomcat using the installation’s startup script or
+    service configuration.
+54. Use the actual WAR or application context name in the browser URL.
+
+H. TEST THE APPLICATION
+
+55. Open a browser on your computer.
+56. For an application listening on port 8080, open:
+    http://PUBLIC_IP:8080
+57. If the application is deployed as a WAR named OLTRS.war, try:
+    http://PUBLIC_IP:8080/OLTRS
+58. Replace PUBLIC_IP with the EC2 instance Public IPv4 address.
+59. Confirm that the application page loads.
+
+I. TROUBLESHOOTING COMMANDS
+
+60. Check whether the Java application is running: ps -ef | grep java
+61. Check whether port 8080 is listening: sudo ss -tulnp | grep 8080
+62. Check the application log: tail -n 100 app.log
+63. Follow the application log continuously: tail -f app.log
+64. Check the instance’s private and public IP details: hostname -I
+65. If the application is reachable locally but not from your computer,
+    check the EC2 Security Group inbound rule for TCP port 8080.
+66. Confirm that the application listens on all network interfaces, not
+    only localhost. For Spring Boot, configure: server.address=0.0.0.0
+67. Restart the application after changing its configuration.
+68. Confirm that the instance still has a Public IPv4 address.
+69. Confirm that the instance is in a public subnet with a route to an
+    Internet Gateway if public internet access is required.
+70. If a stable public address is required, allocate and associate an
+    Elastic IP.
+
+J. IMPORTANT AWS CONCEPTS FOR THE VIVA
+
+71. EC2 means Elastic Compute Cloud. It provides virtual servers in AWS.
+72. An AMI is an Amazon Machine Image used as a template to launch an
+    EC2 instance.
+73. An instance type defines the virtual CPU, memory, storage and
+    networking capacity.
+74. A key pair is used to authenticate securely when connecting to an
+    EC2 instance.
+75. A Security Group acts as a virtual firewall for an EC2 instance.
+76. SSH normally uses TCP port 22.
+77. HTTP normally uses TCP port 80.
+78. HTTPS normally uses TCP port 443.
+79. Port 8080 is commonly used by Java web applications and Tomcat.
+80. EBS provides persistent block storage volumes for EC2 instances.
+81. A Public IPv4 address allows the instance to be reached over the
+    internet when networking and security rules permit it.
+82. An Elastic IP is a static public IPv4 address that can be associated
+    with an AWS resource.
+83. An Internet Gateway allows communication between a VPC and the
+    internet when routing is configured.
+84. A VPC is a logically isolated virtual network in AWS.
+
+K. CLEANUP AFTER THE PRACTICAL
+
+85. Save any required screenshots or submission evidence.
+86. Stop the EC2 instance if you need to keep it but do not need it
+    running.
+87. Terminate the EC2 instance only when you are sure it is no longer
+    required.
+88. Check the EC2 console for unused Elastic IP addresses and release
+    them if they are no longer needed.
+89. Check for unused EBS volumes and other billable resources before
+    finishing.
+90. Do not delete the downloaded private key if you still need to access
+    the instance.
+
+NOTES
+
+-   Replace PUBLIC_IP with the actual Public IPv4 address of your
+    instance.
+-   Replace GENERATED_FILE_NAME with the exact JAR or WAR filename
+    created in target.
+-   The exact run/deployment command depends on whether the repository
+    builds a JAR or WAR.
+-   Do not expose SSH (port 22) to 0.0.0.0/0 for a real deployment; use
+    My IP or a restricted trusted address.
+-   AWS resources can incur charges. Stop or terminate resources when
+    the lab is complete, according to your instructor’s requirements.
