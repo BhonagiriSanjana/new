@@ -1,1 +1,257 @@
-docker run -d --name db --network library-network -e MYSQL_ROOT_PASSWORD=Root@123 -e MYSQL_DATABASE=librarydb -e MYSQL_USER=libraryuser -e MYSQL_PASSWORD=Library@123 -v mysql-data:/var/lib/mysql --restart unless-stopped mysql:8.0
+FROM tomcat:10.1
+COPY target/metro-reservation-1.0.war /usr/local/tomcat/webapps/ROOT.war
+EXPOSE 8080
+CMD ["catalina.sh", "run"]
+
+nagios
+services:
+
+  webapp:
+    image: YOUR_DOCKERHUB_USERNAME/oltrs:latest
+    container_name: web-container
+    ports:
+      - "8080:8080"
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  nagios:
+    image: jasonrivers/nagios:latest
+    container_name: nagios-container
+    ports:
+      - "8081:80"
+    networks:
+      - app-network
+    depends_on:
+      - webapp
+    restart: unless-stopped
+
+networks:
+  app-network:
+    driver: bridge
+docker compose up -d
+docker ps
+in localhost 8080 we 8081 nagios
+docker logs web-container
+docker logs nagios-container
+
+
+
+docker info
+docker network create library-newtwork
+docker netwrok ls
+
+docker volume create mysql-data
+docker volume ls
+
+docker run -d --name db --network library-newtwork -e MYSQL_ROOT_PASSWORD=Root@123 -e MYSQL_DATABASE=librarydb -e MYSQL_USER=libraryuser -e MYSQL_PASSWORD=Library@123 -v mysql-data:/var/lib/mysql --restart unless-stopped mysql:8.0
+
+docker run -d --name wordpress --network library-newtwork -p 8080:80 -e WORDPRESS_DB_HOST=db:3306 -e WORDPRESS_DB_USER=libraryuser -e WORDPRESS_DB_PASSWORD=Library@123 -e WORDPRESS_DB_NAME=librarydb --restart unless-stopped wordpress:latest
+
+in the port run.....
+=======================
+node {
+
+    stage('Checkout') {
+
+        git branch: 'master',
+        url: 'https://github.com/Kumbhambhargavi75/HospitalManagementSystem.git'
+    }
+
+    stage('Compile') {
+
+        bat 'mvn clean compile'
+    }
+
+    stage('Build') {
+
+        bat 'mvn package -DskipTests'
+    }
+
+    stage('Testing') {
+
+        bat 'mvn test'
+
+        junit allowEmptyResults: true,
+              testResults: 'target/surefire-reports/*.xml'
+    }
+
+    stage('Verification') {
+
+        echo 'Hospital Management System verification completed'
+    }
+
+}
+
+jenkins..git github maven integration junit.....tools plugins..
+
+H/2 * * * *
+target/*.jar archive articat
+
+
+git checkout -b jenkins-failure-demo
+git add .
+git commit -m "Demonstrate Jenkins failed build"
+git push -u origin jenkins-failure-demo
+
+
+git add .
+git commit -m "Fix compilation error"
+git push
+
+======================
+winget install Kubernetes.minikube
+winget install Kubernetes.kubectl
+
+
+minikube start --driver=docker
+kubectl get nodes
+minikube status
+
+
+deployment.yaml....
+apiVersion: apps/v1
+
+kind: Deployment
+
+metadata:
+  name: library-deployment
+
+spec:
+  replicas: 2
+
+  selector:
+    matchLabels:
+      app: library
+
+  template:
+    metadata:
+      labels:
+        app: library
+
+    spec:
+      containers:
+      - name: library-container
+        image: nginx:1.25
+
+        ports:
+        - containerPort: 80
+
+kubectl get deployments
+kubectl get pods
+
+service.yaml
+kubectl apply -f service.yaml
+apiVersion: v1
+kind: Service
+
+metadata:
+  name: library-service
+
+spec:
+  type: NodePort
+
+  selector:
+    app: library
+
+  ports:
+  - port: 80
+    targetPort: 80
+    nodePort: 30080
+
+
+kubectl get services
+minikube service library-service=open nagios
+
+kubectl delete pod name
+kubectl set image deployment/library-deployment library-container=nginx:1.26
+kubectl rollout status deployment/library-deployment
+kubectl get pods
+kubectl rollout history deployment/library-deployment
+
+kubectl rollout undo deployment/library-deployment
+kubectl rollout status deployment/library-deployment
+kubectl describe deployment library-deployment
+
+===================
+
+
+docker pull jasonrivers/nagios:latest
+docker run -d --name nagios -p 8082:80 --restart unless-stopped jasonrivers/nagios:latest
+docker network connect library-network nagios
+docker network inspect library-network
+docker exec nagios ls /opt/nagios/etc
+mkdir nagios-config
+cd nagios-config
+
+
+library.cfg
+define host {
+    use                     linux-server
+    host_name               library-server
+    alias                   Digital Library Server
+    address                 127.0.0.1
+}
+
+define host {
+    use                     linux-server
+    host_name               wordpress
+    alias                   WordPress Application
+    address                 wordpress
+}
+
+define host {
+    use                     linux-server
+    host_name               mysql
+    alias                   MySQL Database Server
+    address                 db
+}
+docker cp library.cfg nagios:/opt/nagios/etc/conf.d/library.cfg
+docker exec nagios grep -n "cfg_dir" /opt/nagios/etc/nagios.cfg
+
+define service {
+    use                     generic-service
+    host_name               wordpress
+    service_description     HTTP Service
+    check_command           check_http!-p 80 -w 2 -c 5
+}
+
+docker cp library.cfg nagios:/opt/nagios/etc/conf.d/library.cfg
+define service {
+    use                     generic-service
+    host_name               mysql
+    service_description     MySQL Database
+    check_command           check_tcp!3306
+}
+docker cp library.cfg nagios:/opt/nagios/etc/conf.d/library.cfg
+docker exec nagios ls /opt/nagios/libexec
+
+define service {
+    use                     generic-service
+    host_name               library-server
+    service_description     CPU Load
+    check_command           check_local_load!5.0,4.0,3.0!10.0,8.0,6.0
+}
+define service {
+    use                     generic-service
+    host_name               library-server
+    service_description     Disk Usage
+    check_command           check_local_disk!20%!10%!/
+}
+docker exec nagios /opt/nagios/libexec/check_mem --help
+docker exec nagios /opt/nagios/bin/nagios -v /opt/nagios/etc/nagios.cfg
+docker restart nagios
+==========
+sudo apt update
+sudo apt upgrade -y
+sudo apt install openjdk-17-jdk -y
+sudo apt install tomcat10 -y
+sudo apt install git -y
+git clone https://github.com/deepthisagar7/metro-reservation.git
+sudo cp target/metro-reservation-1.0.war /var/lib/tomcat10/webapps/ROOT.war
+
+
+
+
+
+
